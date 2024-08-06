@@ -14,51 +14,72 @@ import Foundation
 import SwiftUI
 import MapKit
 
-final class ContentViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
+import SwiftUI
+import MapKit
+import Combine
 
-    @Published var region = MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: 33.4, longitude: -117.4), span: MKCoordinateSpan(latitudeDelta: 1, longitudeDelta: 1))
+final class ContentViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
+    @Published var region = MKCoordinateRegion()
     @Published var address = ""
     @Published var location = CLLocation(latitude: 0, longitude: 0)
+    @Published var userCoordinate = CLLocationCoordinate2D(latitude: 0, longitude: 0)
+    // Добавлено для отслеживания необходимости обновления маркеров
+    @Published var shouldUpdateMarkers = false
 
     private var lastResolved = CLLocation()
     private var locationManager = CLLocationManager()
-    
     private var userManuallyMovedMap = false
-    // Новое свойство для отслеживания, переместил ли пользователь карту вручную.
+    
+    private var lastRequestTime: Date?
+    private let minimumDistance: CLLocationDistance = 50 // 50 meters
+    private let minimumTimeInterval: TimeInterval = 60 // 30 seconds
 
     override init() {
         super.init()
         locationManager.delegate = self
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        checkIfLocationServicesIsEnabled()
     }
 
     func checkIfLocationServicesIsEnabled() {
         if CLLocationManager.locationServicesEnabled() {
             locationManager.requestWhenInUseAuthorization()
+            locationManager.startUpdatingLocation()
         } else {
             print("Location services are off. Turn them on in settings.")
         }
     }
 
+    
+        // обновляет мето пложение
+
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        guard let last = locations.last else { return }
+        guard let lastLocation = locations.last else { return }
 
-        if last.distance(from: lastResolved) > 10 {
-            resolveLocationName(with: last) { address in
-                DispatchQueue.main.async {
-                    self.address = address
-                    self.lastResolved = last
+        let now = Date()
+        let timeInterval = lastRequestTime == nil ? minimumTimeInterval : now.timeIntervalSince(lastRequestTime!)
+        let distance = lastLocation.distance(from: lastResolved)
+
+        if distance > minimumDistance || timeInterval >= minimumTimeInterval {
+            lastRequestTime = now
+            lastResolved = lastLocation
+
+            DispatchQueue.main.async {
+                self.location = lastLocation
+                self.userCoordinate = lastLocation.coordinate
+                if !self.userManuallyMovedMap {
+                    self.region = MKCoordinateRegion(center: lastLocation.coordinate, span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01))
                 }
-            }
-        }
-
-        DispatchQueue.main.async {
-            self.location = last
-            if !self.userManuallyMovedMap {
-                self.region = MKCoordinateRegion(center: last.coordinate, span: MKCoordinateSpan(latitudeDelta: 1, longitudeDelta: 1))
             }
         }
     }
 
+
+   
+
+    
+    
+    
     func resolveLocationName(with location: CLLocation, completion: @escaping (String) -> Void) {
         let geocoder = CLGeocoder()
         geocoder.reverseGeocodeLocation(location, preferredLocale: .current) { placemarks, error in
@@ -122,16 +143,7 @@ final class ContentViewModel: NSObject, ObservableObject, CLLocationManagerDeleg
         }
     }
     
-    func mapUserManuallyMoved() {
-        // Метод для установки флага, что пользователь переместил карту вручную.
-        self.userManuallyMovedMap = true
-    }
-
-    func mapUserReset() {
-        // Метод для сброса флага перемещения карты пользователем.
-        self.userManuallyMovedMap = false
-    }
+    
 }
-
 
 

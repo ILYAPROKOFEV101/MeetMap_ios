@@ -12,12 +12,17 @@ import SwiftUI
 import SwiftUI
 import MapKit
 
+import SwiftUI
+import MapKit
+
 struct AlertHelperView: View {
     @ObservedObject var markerStore: MarkerStore
     let coordinate: CLLocationCoordinate2D
+    let uid: String
+    let key: String
+    
     var completion: (MKPointAnnotation, Double) -> Void
     
-    // Прочие состояния и элементы UI
     @State private var markerName = ""
     @State private var description = ""
     @State private var startDate = Date()
@@ -25,6 +30,54 @@ struct AlertHelperView: View {
     @State private var radius: Double = 100
     @State private var isPublic = false
     @State private var access = "public" // Переменная для доступа, инициализированная по умолчанию
+    
+    // Форматтеры для дат и времени
+    private var dateFormatter: DateFormatter {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
+    }
+    
+    
+    
+    private var timeFormatter: DateFormatter {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm"
+        return formatter
+    }
+    
+    // Функция для отправки данных на сервер
+    private func sendMarkerToServer(_ marker: Marker) {
+        guard let url = URL(string: "https://meetmap.up.railway.app/mark/\(uid)/\(key)") else { return }
+        print("server data url ссыдка  \(url) ")
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let encoder = JSONEncoder()
+        do {
+            let jsonData = try encoder.encode(marker)
+            request.httpBody = jsonData
+            
+            let task = URLSession.shared.dataTask(with: request) { data, response, error in
+                if let error = error {
+                    print("Error sending marker: \(error.localizedDescription)")
+                    return
+                }
+                
+                guard let response = response as? HTTPURLResponse, response.statusCode == 200 else {
+                    print("Server error")
+                    return
+                }
+                
+                print("Marker successfully sent")
+            }
+            task.resume()
+        } catch {
+            print("Error encoding marker: \(error.localizedDescription)")
+        }
+    }
     
     var body: some View {
         VStack {
@@ -64,7 +117,6 @@ struct AlertHelperView: View {
                     Text("Make marker " + access)
                 }
                 .onChange(of: isPublic) { newValue in
-                    // Обновляем значение переменной access в зависимости от состояния Toggle
                     access = newValue ? "private" : "public"
                 }
                 
@@ -73,37 +125,41 @@ struct AlertHelperView: View {
                 HStack {
                     Button("Cancel") {
                         // Действие при отмене
-                    }.font(.headline) // Пример использования предустановленного стиля шрифта
+                    }
+                    .font(.headline)
                     
                     Spacer()
+                    
                     Button("Add") {
+                        // Создаем объект Marker с введенными данными
+                        let marker = Marker(
+                            key: key,
+                            username: "ilya", // Можно заменить на текущее значение пользователя
+                            imguser: "imag",
+                            photomark: "photomark",
+                            id: UUID().uuidString, // Генерируем уникальный ID
+                            lat: coordinate.latitude,
+                            lon: coordinate.longitude,
+                            name: markerName,
+                            whatHappens: description,
+                            startDate: dateFormatter.string(from: startDate),
+                            endDate: dateFormatter.string(from: endDate),
+                            startTime: timeFormatter.string(from: startDate),
+                            endTime: timeFormatter.string(from: endDate),
+                            participants: Int(radius),
+                            access: false
+                        )
+                        
+                        // Отправляем данные на сервер
+                        sendMarkerToServer(marker)
+                        
+                        // Вызываем completion handler
                         let annotation = MKPointAnnotation()
                         annotation.coordinate = coordinate
                         annotation.title = markerName
-                        annotation.subtitle = """
-                        \(description)
-                        From: \(startDate)
-                        To: \(endDate)
-                        People: \(Int(radius))
-                        Access: \(isPublic ? "Public" : "Private")
-                        """
-                        
-                        // Создание объекта MarkerData и добавление его в список
-                        let markerData = MarkerData(
-                            position: coordinate,
-                            name: markerName,
-                            whatHappens: description,
-                            startDate: startDate,
-                            endDate: endDate,
-                            participants: Int(radius),
-                            access: isPublic
-                        )
-                                               
-                        markerStore.addMarker(markerData)
-                        
-                        // Использование completion для добавления аннотации на карту
                         completion(annotation, radius)
-                    }.font(.headline) // Пример использования предустановленного стиля шрифта
+                    }
+                    .font(.headline)
                 }
                 .padding()
             }
@@ -111,6 +167,3 @@ struct AlertHelperView: View {
         }
     }
 }
-
-
-

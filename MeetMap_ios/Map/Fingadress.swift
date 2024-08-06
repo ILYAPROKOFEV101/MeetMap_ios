@@ -6,3 +6,38 @@
 //
 
 import Foundation
+import SwiftUI
+import Foundation
+import CoreLocation
+import MapKit
+import SwiftUI
+
+
+func resolveLocationName(with location: CLLocation, completion: @escaping (String) -> Void) {
+    let geocoder = CLGeocoder()
+    geocoder.reverseGeocodeLocation(location, preferredLocale: .current) { placemarks, error in
+        guard let place = placemarks?.first, error == nil else {
+            completion("")
+            return
+        }
+
+        var name = ""
+        if let locality = place.subThoroughfare {
+            name += locality
+        }
+        if let street = place.thoroughfare {
+            name += " \(street)"
+        }
+        if let city = place.locality {
+            name += " \(city)"
+        }
+        if let adminRegion = place.administrativeArea {
+            name += ", \(adminRegion)"
+        }
+        if let zipCode = place.postalCode {
+            name += " \(zipCode)"
+        }
+
+        completion(name)
+    }
+}

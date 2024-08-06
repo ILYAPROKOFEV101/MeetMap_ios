@@ -9,6 +9,8 @@ import Foundation
 import MapKit
 
 
+import Foundation
+
 class MarkerStore: ObservableObject {
     @Published var markers: [MarkerData] = [] {
         didSet {
@@ -26,6 +28,11 @@ class MarkerStore: ObservableObject {
     
     func getMarkers() -> [MarkerData] {
         return markers
+    }
+    
+    // Функция для получения метки по ID
+    func getMarker(by id: String) -> MarkerData? {
+        return markers.first(where: { $0.id == id })
     }
     
     private func saveMarkers() {
@@ -54,4 +61,5 @@ class MarkerStore: ObservableObject {
         return paths[0]
     }
 }
+
 

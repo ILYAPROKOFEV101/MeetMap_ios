@@ -15,8 +15,11 @@ public struct Home: View {
     @State private var userProfileImageURL: URL? = nil
     @State private var isUserSignedIn: Bool = false
 
+    
     public var body: some View {
+       
         NavigationView {
+            
             VStack {
                 if let imageURL = userProfileImageURL {
                     WebImage(url: imageURL)
@@ -81,6 +84,7 @@ public struct Home: View {
             isUserSignedIn = false
         }
     }
+   
 
     func signOut() {
         FirebAuth.share.signOut { error in

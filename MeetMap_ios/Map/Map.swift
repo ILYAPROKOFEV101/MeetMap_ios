@@ -11,10 +11,10 @@
 import SwiftUI
 import MapKit
 import CoreLocation
-
 import Foundation
-import CoreLocation
-import MapKit
+import GoogleSignIn
+import SDWebImageSwiftUI
+import _MapKit_SwiftUI
 
 
 struct ContentViewtwo: View {
@@ -24,14 +24,59 @@ struct ContentViewtwo: View {
     @State private var userAnnotation = MKPointAnnotation()
     @StateObject private var markerStore = MarkerStore()
     @State private var mapType: MKMapType = .standard
+    @State private var userName: String = ""
+    @State private var userProfileImageURL: URL? = nil
+    @State private var isUserSignedIn: Bool = false
+    @State private var userUID: String = ""
+    @State private var savedResponse: String = ""
+    private var lastResolved = CLLocation()
+
     var body: some View {
         ZStack(alignment: .bottom) {
-            CustomMapView(coordinateRegion: $viewModel.region, mapType: $mapType,  markerStore: markerStore)
+            
+                CustomMapView(
+                    coordinateRegion: $viewModel.region,
+                    mapType: $mapType,
+                    markerStore: markerStore,
+                    uid: $userUID,
+                    key: $savedResponse,
+                    userLocation: $viewModel.userCoordinate
+                )
                 .onAppear {
-                    viewModel.checkIfLocationServicesIsEnabled()
+                    if let response = UserDefaults.standard.string(forKey: "responseKey") {
+                        savedResponse = response
+                       
+                    }
+                  
+                    
+                    print("Saved Response: \(savedResponse)")
+                    
+                    let userInfo = FirebAuth.share.getCurrentUserInfo()
+                    if let uid = userInfo.uid, !uid.isEmpty {
+                        userUID = uid
+                        if let name = userInfo.name {
+                            userName = name
+                        }
+                        if let profileImageURL = userInfo.profileImageURL {
+                            userProfileImageURL = profileImageURL
+                        }
+                    }
+                
+                    // Пример использования
+                    checkUser(uid: userUID) { key in
+                        if let key = key {
+                           savedResponse = key
+                            // Используйте ключ, если он существует
+                            print("Retrieved Key: \(key)")
+                        } else {
+                            // Ключ не был найден
+                            print("Failed to retrieve key.")
+                        }
+                    }
+                    
                 }
                 .edgesIgnoringSafeArea(.all)
-
+            
             VStack {
                 TextField("Enter address", text: $viewModel.address, onCommit: {
                     withAnimation {
@@ -58,7 +103,6 @@ struct ContentViewtwo: View {
                 HStack {
                     Button(action: {
                         viewModel.updateAddress()
-                      
                     }) {
                         Image(systemName: "location.circle.fill")
                             .resizable()
@@ -71,7 +115,7 @@ struct ContentViewtwo: View {
                     Button(action: {
                         mapType = (mapType == .standard) ? .satellite : .standard
                     }) {
-                        Image(systemName:  "globe")
+                        Image(systemName: "globe")
                             .resizable()
                             .frame(width: 44, height: 44)
                             .background(Color.white.opacity(0.8))
@@ -82,10 +126,7 @@ struct ContentViewtwo: View {
             }
         }
     }
-
 }
-
-
 
 
 // Превью для Canvas
