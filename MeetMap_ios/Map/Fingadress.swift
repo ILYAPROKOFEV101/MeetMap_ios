@@ -1,0 +1,8 @@
+//
+//  Fingadress.swift
+//  MeetMap_ios
+//
+//  Created by Ilya Prokofev on 04.08.2024.
+//
+
+import Foundation
