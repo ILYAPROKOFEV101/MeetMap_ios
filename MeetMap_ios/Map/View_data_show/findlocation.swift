@@ -1,16 +1,12 @@
 //
-//  Fingadress.swift
+//  findlocation.swift
 //  MeetMap_ios
 //
-//  Created by Ilya Prokofev on 04.08.2024.
+//  Created by Ilya Prokofev on 11.08.2024.
 //
 
 import Foundation
-import SwiftUI
-import Foundation
 import CoreLocation
-import MapKit
-import SwiftUI
 
 
 func resolveLocationName(with location: CLLocation, completion: @escaping (String) -> Void) {
