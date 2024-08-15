@@ -32,7 +32,7 @@ final class ContentViewModel: NSObject, ObservableObject, CLLocationManagerDeleg
     
     private var lastRequestTime: Date?
     private let minimumDistance: CLLocationDistance = 50 // 50 meters
-    private let minimumTimeInterval: TimeInterval = 60 // 30 seconds
+    private let minimumTimeInterval: TimeInterval = 200 // 200 seconds
 
     override init() {
         super.init()
@@ -136,6 +136,7 @@ final class ContentViewModel: NSObject, ObservableObject, CLLocationManagerDeleg
 
     func updateAddress() {
         guard let location = locationManager.location else { return }
+        //self.region = MKCoordinateRegion(center: location\.coordinate, span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01))
         resolveLocationName(with: location) { address in
             DispatchQueue.main.async {
                 self.address = address

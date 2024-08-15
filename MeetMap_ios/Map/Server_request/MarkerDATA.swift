@@ -12,6 +12,7 @@ struct Marker: Codable, Hashable {
     let username: String
     let imguser: String
     let photomark: String
+    let street: String
     let id: String
     let lat: Double
     let lon: Double
@@ -102,3 +103,7 @@ func loadMarkersFromUserDefaults() {
     }
 }
 
+// Функция для получения данных маркера по id
+func getMarkerData(by id: String) -> Marker? {
+    return markers.first { $0.id == id }
+}

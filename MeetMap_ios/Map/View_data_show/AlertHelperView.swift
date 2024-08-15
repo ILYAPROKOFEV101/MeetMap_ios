@@ -20,6 +20,7 @@ struct AlertHelperView: View {
     let coordinate: CLLocationCoordinate2D
     let uid: String
     let key: String
+    let adress: String
     
     var completion: (MKPointAnnotation, Double) -> Void
     
@@ -137,6 +138,7 @@ struct AlertHelperView: View {
                             username: "ilya", // Можно заменить на текущее значение пользователя
                             imguser: "imag",
                             photomark: "photomark",
+                            street: adress,
                             id: UUID().uuidString, // Генерируем уникальный ID
                             lat: coordinate.latitude,
                             lon: coordinate.longitude,
