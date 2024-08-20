@@ -29,17 +29,15 @@ struct ContentViewtwo: View {
     @State private var isUserSignedIn: Bool = false
     @State private var userUID: String = ""
     @State private var savedResponse: String = ""
-    private var lastResolved = CLLocation()
     @State private var participantMarks: [Marker] = []
     @State private var errorMessage: String?
-
-    
-    // Переменная для управления состоянием нижнего листа
     @State private var isBottomSheetVisible: Bool = false
-    
+    @State private var showAlert: Bool = false
+    @State private var alertMessage: String = ""
+    @State private var alertUsers: [User] = []
+
     var body: some View {
         ZStack(alignment: .bottom) {
-            
             CustomMapView(
                 coordinateRegion: $viewModel.region,
                 mapType: $mapType,
@@ -65,31 +63,26 @@ struct ContentViewtwo: View {
                 checkUser(uid: userUID) { key in
                     if let key = key {
                         savedResponse = key
-                        // Используйте ключ, если он существует
                         print("Retrieved Key: \(key)")
                     } else {
-                        // Ключ не был найден
                         print("Failed to retrieve key.")
                     }
                 }
                 fetchParticipantMarks(uid: userUID, key: savedResponse) { result in
-                                DispatchQueue.main.async {
-                                    switch result {
-                                    case .success(let marks):
-                                        self.participantMarks = marks
-                                    case .failure(let error):
-                                        self.errorMessage = error.localizedDescription
-                                    }
-                                }
+                    DispatchQueue.main.async {
+                        switch result {
+                        case .success(let marks):
+                            self.participantMarks = marks
+                        case .failure(let error):
+                            self.errorMessage = error.localizedDescription
+                        }
+                    }
                 }
             }
             .edgesIgnoringSafeArea(.all)
-            
-            
-            
+
             ZStack {
                 VStack {
-                    // Ваши другие представления
                     TextField("Enter address", text: $viewModel.address, onCommit: {
                         withAnimation {
                             showAddress = true
@@ -102,19 +95,19 @@ struct ContentViewtwo: View {
                     })
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .padding()
-                    
+
                     if showAddress {
                         Text(viewModel.address)
                             .padding()
                             .background(Color.yellow)
                             .transition(.opacity)
                     }
-                    
+
                     Spacer()
-                    
+
                     HStack {
                         Spacer()
-                        
+
                         VStack(alignment: .leading) {
                             Spacer()
                             Button(action: {
@@ -142,8 +135,8 @@ struct ContentViewtwo: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .trailing)  // Выравнивание по правому краю
                 }
-                
-                BottomSheetView(isOpen: $isBottomSheetVisible, minHeight: 50, maxHeight: 800 ) {
+
+                BottomSheetView(isOpen: $isBottomSheetVisible, minHeight: 50, maxHeight: 800) {
                     VStack {
                         Text("Additional Information")
                             .font(.headline)
@@ -165,8 +158,6 @@ struct ContentViewtwo: View {
                                         Text("Date: \(mark.startDate) - \(mark.endDate)")
                                         Text("Time: \(mark.startTime) - \(mark.endTime)")
                                         Text("Description: \(mark.whatHappens)")
-
-                                        // Добавьте другие данные по мере необходимости
                                     }
                                     .padding()
                                     .background(Color.gray.opacity(0.1))
@@ -178,14 +169,42 @@ struct ContentViewtwo: View {
                     .padding()
                 }
             }
+            .onReceive(NotificationCenter.default.publisher(for: .didDetectShake)) { _ in
+                Task {
+                    await handleShakeEvent()
+                }
+            }
+            .sheet(isPresented: $showAlert)
+            {
+                        ShakeAlertView(message: alertMessage, users: alertUsers, isPresented: $showAlert)
+            }
         }
     }
-}
 
-// Превью для Canvas
-struct ContentView_Previews: PreviewProvider {
-    static var previews: some View {
-        ContentViewtwo()
+    private func handleShakeEvent() async {
+        print("Shake event handled in ContentView")
+        
+        // Вызов асинхронного метода fetchData
+        let userLocation = viewModel.userCoordinate
+        let urlString = "wss://meetmap.up.railway.app/shake/\(savedResponse)/\(userLocation.latitude)/\(userLocation.longitude)"
+        print("URL for WebSocket: \(urlString)")
+
+        if let users = await fetchData(from: urlString) {
+            DispatchQueue.main.async {
+                alertMessage = "Shake Detected"
+                alertUsers = users
+                showAlert = true
+            }
+            print("Received users: \(users)")
+        } else {
+            print("No data received or an error occurred")
+        }
     }
+
+
 }
 
+
+extension Notification.Name {
+    static let didDetectShake = Notification.Name("didDetectShake")
+}
