@@ -21,8 +21,8 @@ struct MeetMap_iosApp: App {
             if !isSignIn {
                 LoginScreen()
             } else {
-                   Home()
-                //ContentViewtwo()
+                  // Home()
+                ContentViewtwo()
             }
         }
     }

@@ -28,6 +28,7 @@ struct MarkerData: Codable, Identifiable {
     let username: String
     let imguser: String
     let photomark: String
+    let street: String
     let id: String
     let coordinate: Coordinate // Используем Coordinate для координат
     let name: String
@@ -40,11 +41,12 @@ struct MarkerData: Codable, Identifiable {
     let access: Bool
     
     // Инициализатор
-    init(key: String, username: String, imguser: String, photomark: String, id: String, coordinate: CLLocationCoordinate2D, name: String, whatHappens: String, startDate: String, endDate: String, startTime: String, endTime: String, participants: Int, access: Bool) {
+    init(key: String, username: String, imguser: String, photomark: String, id: String, coordinate: CLLocationCoordinate2D, name: String, whatHappens: String, startDate: String, endDate: String, startTime: String, endTime: String, participants: Int, access: Bool,  street: String) {
         self.key = key
         self.username = username
         self.imguser = imguser
         self.photomark = photomark
+        self.street = street
         self.id = id
         self.coordinate = Coordinate(coordinate) // Используем Coordinate
         self.name = name

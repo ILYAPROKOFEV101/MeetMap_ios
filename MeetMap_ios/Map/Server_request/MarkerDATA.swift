@@ -54,9 +54,9 @@ func fetchMarkers(urlString: String, completion: @escaping ([Marker]) -> Void) {
         }
 
         // Отладка: Выводим полученные данные в консоль
-        if let responseString = String(data: data, encoding: .utf8) {
-            print("Response Data: \(responseString)")
-        }
+//        if let responseString = String(data: data, encoding: .utf8) {
+//            print("Response Data: \(responseString)")
+//        }
 
         do {
             // Декодирование данных в [Marker]
@@ -76,7 +76,7 @@ func storeUniqueMarkers(_ fetchedMarkers: [Marker]) {
     for marker in fetchedMarkers {
         if uniqueIDs.contains(marker.id) {
             // Если id метки уже существует в множестве, пропускаем добавление
-            print("Метка с id \(marker.id) уже существует")
+            //  print("Метка с id \(marker.id) уже существует")
         } else {
             // Добавляем id метки в множество и саму метку в массив
             uniqueIDs.insert(marker.id)

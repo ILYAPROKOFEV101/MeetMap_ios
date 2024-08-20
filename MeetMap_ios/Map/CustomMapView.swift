@@ -87,7 +87,10 @@ struct CustomMapView: UIViewRepresentable {
 
         // Сбрасываем флаг, чтобы в следующий раз обновление маркеров происходило только при значительных изменениях
         shouldUpdateMarkers = true
+        
     }
+    
+    
 
     func displayMarkersOnMap(uiView: MKMapView) {
         // Очистка старых аннотаций и оверлеев

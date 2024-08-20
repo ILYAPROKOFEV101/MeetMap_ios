@@ -7,6 +7,8 @@
 
 import SwiftUI
 
+import SwiftUI
+
 // Объявление структуры BottomSheetView, которая представляет собой пользовательский компонент нижнего окна (Bottom Sheet)
 struct BottomSheetView<Content: View>: View {
     // Связь с состоянием, которое управляет тем, открыто ли нижнее окно
@@ -49,7 +51,6 @@ struct BottomSheetView<Content: View>: View {
                     self.indicator // Показывает индикатор перетаскивания
                     ScrollView { // Добавляем ScrollView для прокрутки содержимого
                         self.content // Отображаем переданный контент
-                        Spacer()
                     }
                 }
                 .frame(width: geometry.size.width, height: maxHeight, alignment: .top) // Устанавливаем ширину и высоту окна
