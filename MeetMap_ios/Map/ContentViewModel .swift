@@ -25,7 +25,9 @@ import CoreMotion
 import MapKit
 
 final class ContentViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
-    @Published var region = MKCoordinateRegion()
+    // Удалите эту строку
+    // @Published var region = MKCoordinateRegion()
+    
     @Published var address = ""
     @Published var location = CLLocation(latitude: 0, longitude: 0)
     @Published var userCoordinate = CLLocationCoordinate2D(latitude: 0, longitude: 0)
@@ -60,29 +62,10 @@ final class ContentViewModel: NSObject, ObservableObject, CLLocationManagerDeleg
         }
     }
 
-    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        guard let lastLocation = locations.last else { return }
+    
+    
+    
 
-        let now = Date()
-        let timeInterval = lastRequestTime == nil ? minimumTimeInterval : now.timeIntervalSince(lastRequestTime!)
-        let distance = lastLocation.distance(from: lastResolved)
-
-        if distance > minimumDistance || timeInterval >= minimumTimeInterval {
-            lastRequestTime = now
-            lastResolved = lastLocation
-
-            DispatchQueue.main.async {
-                self.location = lastLocation
-                self.userCoordinate = lastLocation.coordinate
-                if !self.userManuallyMovedMap {
-                    self.region = MKCoordinateRegion(
-                        center: lastLocation.coordinate,
-                        span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
-                    )
-                }
-            }
-        }
-    }
 
     func resolveLocationName(with location: CLLocation, completion: @escaping (String) -> Void) {
         let geocoder = CLGeocoder()
@@ -113,31 +96,7 @@ final class ContentViewModel: NSObject, ObservableObject, CLLocationManagerDeleg
         }
     }
 
-    private func checkLocationAuth() {
-        switch locationManager.authorizationStatus {
-        case .notDetermined:
-            locationManager.requestWhenInUseAuthorization()
-        case .restricted:
-            print("Location is restricted")
-        case .denied:
-            print("Location is denied in settings for this app")
-        case .authorizedAlways, .authorizedWhenInUse:
-            if let location = locationManager.location {
-                self.region = MKCoordinateRegion(
-                    center: location.coordinate,
-                    span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
-                )
-                self.location = location
-                updateAddress() // Обновляем адрес при получении начального местоположения
-            }
-        @unknown default:
-            break
-        }
-    }
-
-    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
-        checkLocationAuth()
-    }
+  
 
     func updateAddress() {
         guard let location = locationManager.location else { return }
@@ -167,13 +126,8 @@ final class ContentViewModel: NSObject, ObservableObject, CLLocationManagerDeleg
 
     private func handleShake() {
         DispatchQueue.main.async {
-            // Вы можете использовать SwiftUI View для показа предупреждения или другого действия.
-            // Например, через NotificationCenter или другую реакцию.
             print("Shake detected")
-            // Пример с использованием NotificationCenter
             NotificationCenter.default.post(name: .didDetectShake, object: nil)
-            
-            
         }
     }
 }

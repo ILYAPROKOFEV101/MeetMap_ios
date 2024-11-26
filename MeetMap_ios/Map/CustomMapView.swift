@@ -13,7 +13,7 @@ import SwiftUI
 
 
 struct CustomMapView: UIViewRepresentable {
-    @Binding var coordinateRegion: MKCoordinateRegion
+    
     @Binding var mapType: MKMapType
     @ObservedObject var markerStore: MarkerStore
     @Binding var uid: String
@@ -52,16 +52,6 @@ struct CustomMapView: UIViewRepresentable {
             return // Возвращаемся, чтобы остановить дальнейшие обновления
         }
 
-        // Обновляем регион карты только если он изменился и не было изменения типа карты
-        if !isMapTypeChanged {
-            if uiView.region.center.latitude != coordinateRegion.center.latitude ||
-                uiView.region.center.longitude != coordinateRegion.center.longitude ||
-                uiView.region.span.latitudeDelta != coordinateRegion.span.latitudeDelta ||
-                uiView.region.span.longitudeDelta != coordinateRegion.span.longitudeDelta {
-                uiView.setRegion(coordinateRegion, animated: true)
-            }
-        }
-
         // Загружаем метки из памяти устройства и отображаем их на карте
         loadMarkersFromUserDefaults()
         displayMarkersOnMap(uiView: uiView)
@@ -80,16 +70,30 @@ struct CustomMapView: UIViewRepresentable {
                         loadMarkersFromUserDefaults()
                         // Обновляем отображение меток на карте
                         displayMarkersOnMap(uiView: uiView)
+
+                        // Перемещаем камеру на текущие координаты пользователя
+                        self.moveCameraToCoordinate(lat: lat, lon: lon)
                     }
                 }
             }
         }
-
         // Сбрасываем флаг, чтобы в следующий раз обновление маркеров происходило только при значительных изменениях
         shouldUpdateMarkers = true
-        
     }
     
+    
+    
+  public  func moveCameraToCoordinate(lat: CLLocationDegrees, lon: CLLocationDegrees) {
+        let coordinate = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+        let region = MKCoordinateRegion(center: coordinate, latitudinalMeters: 500, longitudinalMeters: 500)
+
+        // Вызов обновления карты на главном потоке
+        DispatchQueue.main.async {
+            if let mapView = UIApplication.shared.windows.first?.rootViewController?.view as? MKMapView {
+                mapView.setRegion(region, animated: true)
+            }
+        }
+    }
     
 
     func displayMarkersOnMap(uiView: MKMapView) {
@@ -116,10 +120,6 @@ struct CustomMapView: UIViewRepresentable {
             uiView.addOverlay(circle)
         }
     }
-
-
-
-
 
 
     func makeCoordinator() -> Coordinator {

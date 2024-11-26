@@ -39,7 +39,7 @@ struct ContentViewtwo: View {
     var body: some View {
         ZStack(alignment: .bottom) {
             CustomMapView(
-                coordinateRegion: $viewModel.region,
+                // Удалите `coordinateRegion`
                 mapType: $mapType,
                 markerStore: markerStore,
                 uid: $userUID,
@@ -50,6 +50,7 @@ struct ContentViewtwo: View {
                 if let response = UserDefaults.standard.string(forKey: "responseKey") {
                     savedResponse = response
                 }
+                
                 let userInfo = FirebAuth.share.getCurrentUserInfo()
                 if let uid = userInfo.uid, !uid.isEmpty {
                     userUID = uid
@@ -60,6 +61,7 @@ struct ContentViewtwo: View {
                         userProfileImageURL = profileImageURL
                     }
                 }
+                
                 checkUser(uid: userUID) { key in
                     if let key = key {
                         savedResponse = key
@@ -68,6 +70,7 @@ struct ContentViewtwo: View {
                         print("Failed to retrieve key.")
                     }
                 }
+                
                 fetchParticipantMarks(uid: userUID, key: savedResponse) { result in
                     DispatchQueue.main.async {
                         switch result {
@@ -78,6 +81,13 @@ struct ContentViewtwo: View {
                         }
                     }
                 }
+                
+                // Убедитесь, что регион не меняется при загрузке карты
+                // Например, закомментируйте следующий код или удалите его, если он есть:
+                // viewModel.region = MKCoordinateRegion(
+                //     center: someLocation,
+                //     span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+                // )
             }
             .edgesIgnoringSafeArea(.all)
 

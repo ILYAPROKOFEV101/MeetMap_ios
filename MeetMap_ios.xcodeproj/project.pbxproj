@@ -167,8 +167,8 @@
 			isa = PBXGroup;
 			children = (
 				3C896A7B2C52CA3A00C15A28 /* Map.swift */,
-				3CD13FD32C545B9600B1E6B6 /* ContentViewModel .swift */,
 				3C21839B2C55C71800B15B30 /* CustomMapView.swift */,
+				3CD13FD32C545B9600B1E6B6 /* ContentViewModel .swift */,
 				3CB7266F2C62D54500D764E7 /* View_data_show */,
 				3C2C9BB82C582ED300EAD5CA /* auxiliary */,
 				3C8BBC652C5E390200AE1097 /* Server_request */,
